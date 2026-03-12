@@ -1,3 +1,4 @@
+import re
 from textnode import TextType, TextNode
 from htmlnode import LeafNode
 
@@ -39,4 +40,61 @@ def split_nodes_delimiter(old_nodes:list[TextNode], delimiter, text_type):
                 new_nodes.append(TextNode(split_text_node[part_index], TextType.TEXT))
             else:
                 new_nodes.append(TextNode(split_text_node[part_index], text_type))
+    return new_nodes
+
+def extract_markdown_images(text) -> list[tuple[[str], [str]]]:
+    # very readable
+    return re.findall(r"!\[([^\[\]]*)]\(([^()]*)\)", text)
+
+def extract_markdown_links(text) -> list[tuple[[str], [str]]]:
+    return re.findall(r"(?<!!)\[([^\[\]]*)]\(([^()]*)\)", text)
+
+def split_nodes_image(old_nodes):
+    new_nodes = []
+    for node in old_nodes:
+        node_text = node.text
+        # extract image link is possible
+        images = extract_markdown_images(node_text)
+        # if there are no images, just return the node unchanged
+        if len(images) == 0:
+            new_nodes.append(node)
+            continue
+        # Split by all image occurrences
+        before = node_text
+        for alt, link in images:
+            sections = before.split(f"![{alt}]({link})", 1) # index 0: everything before the image, index 1: everything after:
+            if sections[0] != "":
+                new_nodes.append(TextNode(sections[0], TextType.TEXT))
+            new_nodes.append(TextNode(alt, TextType.IMAGE, link))
+            # Split everything after the first link again
+            before = sections[1]
+        if before != "":
+            new_nodes.append(TextNode(before, TextType.TEXT))
+        # append everything after the last link so that it doesn't go missing
+
+    return new_nodes
+
+def split_nodes_link(old_nodes):
+    new_nodes = []
+    for node in old_nodes:
+        node_text = node.text
+        links = extract_markdown_links(node_text)
+        # if there are no images, just return the node unchanged
+        if len(links) == 0:
+            new_nodes.append(node)
+            continue
+        # Split by all image occurrences
+        before = node_text
+        for a, url in links:
+            sections = before.split(f"[{a}]({url})",
+                                    1)  # index 0: everything before the image, index 1: everything after:
+            if sections[0] != "":
+                new_nodes.append(TextNode(sections[0], TextType.TEXT))
+            new_nodes.append(TextNode(a, TextType.LINK, url))
+            # Split everything after the first link again
+            before = sections[1]
+        if before != "":
+            new_nodes.append(TextNode(before, TextType.TEXT))
+        # append everything after the last link so that it doesn't go missing
+
     return new_nodes
