@@ -23,7 +23,7 @@ def text_node_to_html_node(text_node:TextNode):
 
 def split_nodes_delimiter(old_nodes:list[TextNode], delimiter, text_type):
     new_nodes = []
-    if delimiter not in ["*", "**", "_", "`"]:
+    if delimiter not in ["**", "_", "`"]:
         raise ValueError("invalid delimiter")
     for node in old_nodes:
         if node.text_type != TextType.TEXT:
@@ -98,3 +98,11 @@ def split_nodes_link(old_nodes):
         # append everything after the last link so that it doesn't go missing
 
     return new_nodes
+
+def text_to_textnodes(text):
+    nodes = split_nodes_delimiter([TextNode(text, TextType.TEXT)], "**", TextType.BOLD)
+    nodes = split_nodes_delimiter(nodes, "_", TextType.ITALIC)
+    nodes = split_nodes_delimiter(nodes, "`", TextType.CODE)
+    nodes = split_nodes_link(nodes)
+    nodes = split_nodes_image(nodes)
+    return nodes

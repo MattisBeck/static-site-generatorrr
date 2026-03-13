@@ -1,5 +1,5 @@
 import unittest
-from helpers import text_node_to_html_node, split_nodes_delimiter, extract_markdown_links, extract_markdown_images, split_nodes_image, split_nodes_link
+from helpers import text_node_to_html_node, split_nodes_delimiter, extract_markdown_links, extract_markdown_images, split_nodes_image, split_nodes_link, text_to_textnodes
 from textnode import TextType, TextNode
 
 class TestConvert(unittest.TestCase):
@@ -354,3 +354,75 @@ class TestSplit(unittest.TestCase):
                 TextNode("![image](https://i.imgur.com/zjjcJKZ.png)", TextType.TEXT),
             ]
         )
+
+    def test_text_to_textnodes(self):
+        text = "This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://mattisbeck.com)"
+        new_nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            new_nodes,
+            [
+                TextNode("This is ", TextType.TEXT),
+                TextNode("text", TextType.BOLD),
+                TextNode(" with an ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+                TextNode(" word and a ", TextType.TEXT),
+                TextNode("code block", TextType.CODE),
+                TextNode(" and an ", TextType.TEXT),
+                TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+                TextNode(" and a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://mattisbeck.com"),
+            ]
+        )
+
+    def test_text_to_textnodes_plain_text(self):
+        text = "Just plain text."
+        new_nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            new_nodes,
+            [
+                TextNode("Just plain text.", TextType.TEXT),
+            ]
+        )
+
+    def test_text_to_textnodes_only_bold(self):
+        text = "**bold**"
+        new_nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            new_nodes,
+            [
+                TextNode("", TextType.TEXT),
+                TextNode("bold", TextType.BOLD),
+                TextNode("", TextType.TEXT),
+            ]
+        )
+
+    def test_text_to_textnodes_multiple_same_type(self):
+        text = "A **bold** and **strong** text."
+        new_nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            new_nodes,
+            [
+                TextNode("A ", TextType.TEXT),
+                TextNode("bold", TextType.BOLD),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("strong", TextType.BOLD),
+                TextNode(" text.", TextType.TEXT),
+            ]
+        )
+
+    def test_text_to_textnodes_image_and_link_order(self):
+        text = "![alt](https://img.test/a.png) then [site](https://example.com)"
+        new_nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            new_nodes,
+            [
+                TextNode("alt", TextType.IMAGE, "https://img.test/a.png"),
+                TextNode(" then ", TextType.TEXT),
+                TextNode("site", TextType.LINK, "https://example.com"),
+            ]
+        )
+
+    def test_text_to_textnodes_unclosed_delimiter_raises(self):
+        text = "This has **broken markdown"
+        with self.assertRaises(ValueError):
+            text_to_textnodes(text)
