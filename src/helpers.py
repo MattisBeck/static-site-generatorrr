@@ -99,10 +99,20 @@ def split_nodes_link(old_nodes):
 
     return new_nodes
 
-def text_to_textnodes(text):
+def text_to_textnodes(text:str) -> list[TextNode]:
     nodes = split_nodes_delimiter([TextNode(text, TextType.TEXT)], "**", TextType.BOLD)
     nodes = split_nodes_delimiter(nodes, "_", TextType.ITALIC)
     nodes = split_nodes_delimiter(nodes, "`", TextType.CODE)
-    nodes = split_nodes_link(nodes)
     nodes = split_nodes_image(nodes)
+    nodes = split_nodes_link(nodes)
     return nodes
+
+def markdown_to_blocks(text:str) -> list[str]:
+    text_by_blocks = text.split("\n\n")
+    clean_blocks = []
+    for block in text_by_blocks:
+        block = block.strip()
+        if len(block) == 0:
+            continue
+        clean_blocks.append(block) # append blocks without whitespace
+    return clean_blocks
