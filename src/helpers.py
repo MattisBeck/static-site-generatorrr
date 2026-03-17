@@ -107,12 +107,3 @@ def text_to_textnodes(text:str) -> list[TextNode]:
     nodes = split_nodes_link(nodes)
     return nodes
 
-def markdown_to_blocks(text:str) -> list[str]:
-    text_by_blocks = text.split("\n\n")
-    clean_blocks = []
-    for block in text_by_blocks:
-        block = block.strip()
-        if len(block) == 0:
-            continue
-        clean_blocks.append(block) # append blocks without whitespace
-    return clean_blocks
