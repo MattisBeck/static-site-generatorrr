@@ -1,9 +1,10 @@
-from textnode import TextNode, TextType
+from website import copy_from_to
+import os
 
 
 def main():
-    node = TextNode("**This is Bold**", TextType.BOLD)
-    print(node)
+    print(os.getcwd())
+    copy_from_to("../static", "../public")
 
 if __name__ == "__main__":
     main()
