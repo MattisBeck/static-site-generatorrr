@@ -26,3 +26,8 @@ class TestExtractTitle(unittest.TestCase):
         md = "A ## hashtags needs to be here"
         with self.assertRaises(ValueError):
             extracted = extract_title(md)
+
+    def test_heading_in_second_line(self):
+        md = "No heading \n# but a heading here"
+        extracted = extract_title(md)
+        self.assertEqual(extracted, "but a heading here")
